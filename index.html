@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>紫微人生曲線圖</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -401,6 +402,13 @@ footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
     <span class="field-label" style="margin-left:12px;">性別</span>
     <select id="gdr"><option value="M">男</option><option value="F">女</option></select>
   </div>
+  <!-- 同意聲明 -->
+  <div style="margin-top:14px;padding:10px 14px;background:var(--paper2);border-radius:3px;border:.5px solid var(--border);font-size:12px;color:var(--ink3);line-height:1.8;">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;">
+      <input type="checkbox" id="consent" checked style="margin-top:2px;width:14px;height:14px;flex-shrink:0;">
+      <span>本人同意將所填資料（匿名）提供作為學術研究用途，資料不含個人識別資訊，僅供統計分析。</span>
+    </label>
+  </div>
   <!-- 隱藏的農曆欄位供排盤使用 -->
   <input type="hidden" id="by" value="1984">
   <input type="hidden" id="bm" value="7">
@@ -579,7 +587,7 @@ var MONTHS = [
 [4,29,29,30,29,29,30,30,29,30,30,29,30,30], // 1981
 [0,29,29,30,29,29,30,29,30,30,30,29,30],    // 1982
 [0,30,29,29,30,29,29,30,29,30,30,29,30],    // 1983
-[10,30,30,29,29,30,29,30,29,29,30,30,29,30],// 1984 閏十月
+[10,30,29,30,30,30,29,30,29,30,29,29,30,30],// 1984 閏十月（修正）
 [0,30,30,29,30,29,30,29,30,29,29,30,29],    // 1985
 [0,30,30,30,29,30,29,30,29,30,29,29,30],    // 1986
 [6,29,30,30,29,30,30,29,30,29,30,29,29,30], // 1987
@@ -747,6 +755,62 @@ function solarToLunar(sy,sm,sd){
 return { convert: solarToLunar };
 })();
 
+
+// ═══════════════════════════════════════
+// Supabase 設定（請填入您的專案資訊）
+// ═══════════════════════════════════════
+var SUPABASE_URL = 'https://eqpwgbqmdygynuzqdvfy.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_ChhvEFtd64zPh01iYX2hCA_KW8eR8wJ';
+var _sb = null;
+function getSB(){
+  if(!_sb && SUPABASE_URL && SUPABASE_KEY){
+    _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return _sb;
+}
+
+async function submitRecord(d, sorted, mAll, mNorm){
+  var consentEl = document.getElementById('consent');
+  if(consentEl && !consentEl.checked) return; // 未同意，不送出
+  var sb = getSB();
+  if(!sb) return; // 未設定 Supabase，靜默略過
+  try {
+    var lr = LUNAR.convert(
+      +document.getElementById('sol_y').value,
+      +document.getElementById('sol_m').value,
+      +document.getElementById('sol_d').value
+    );
+    var record = {
+      solar_year:   +document.getElementById('sol_y').value,
+      solar_month:  +document.getElementById('sol_m').value,
+      solar_day:    +document.getElementById('sol_d').value,
+      birth_hour:   +document.getElementById('bh').value,
+      gender:       document.getElementById('gdr').value,
+      lunar_year:   lr ? lr.year  : null,
+      lunar_month:  lr ? lr.month : null,
+      lunar_day:    lr ? lr.day   : null,
+      is_leap_month:lr ? lr.isLeap : false,
+      ming_zhi:     d.mz,
+      wu_xing_ju:   d.ju,
+      ziwei_zhi:    d.zw,
+      ming_stars:   JSON.stringify(d.myInfo.s),
+      is_yin_ming:  d.isYin,
+      daxi_forward: d.fwd,
+      daxi_list:    JSON.stringify(d.daxi.map(function(dx){
+        return {n:dx.n,sa:dx.sa,ea:dx.ea,zhi:dx.zhi,stars:dx.ss,score:dx.sc,bor:dx.bor};
+      })),
+      events: JSON.stringify(sorted.map(function(e){
+        return {age:e.age,label:e.label,score:e.score,fm:e.fm};
+      })),
+      match_all:    mAll.p,
+      match_normal: mNorm.p,
+      consent:      true
+    };
+    await sb.from('ziwei_records').insert([record]);
+  } catch(e){
+    console.log('資料送出失敗（不影響使用）:', e.message);
+  }
+}
 
 var THISYEAR=2026;
 var evs=[
@@ -993,15 +1057,24 @@ function doDraw(){
     if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);
   }
   ctx.stroke();
-  // 大限中點菱形
+  // 大限中點菱形＋主星名稱
+  var SSHORT={'紫微':'紫','天機':'機','太陽':'陽','武曲':'武','天同':'同','廉貞':'廉','天府':'府','太陰':'陰','貪狼':'狼','巨門':'巨','天相':'相','天梁':'梁','七殺':'殺','破軍':'破'};
+  function sLbl(ss){
+    if(!ss||!ss.length) return '空';
+    if(ss.length===1) return ss[0];
+    return ss.map(function(s){return SSHORT[s]||s.charAt(0);}).join('');
+  }
   daxi.forEach(function(dx){
     var mx=ax(dx.mid),my=ay(dx.sc);
     var col=dx.sc>0.5?'#3a8a5c':dx.sc<-0.5?'#c0443a':'#9a9a9a';
     ctx.beginPath();ctx.moveTo(mx,my-5);ctx.lineTo(mx+5,my);ctx.lineTo(mx,my+5);ctx.lineTo(mx-5,my);ctx.closePath();
     ctx.fillStyle=col;ctx.fill();
+    var lbl=sLbl(dx.ss);
+    if(dx.bor)lbl='('+lbl+')';
     ctx.fillStyle=col;ctx.font='bold 11px "Noto Sans TC",sans-serif';ctx.textAlign='center';
-    var lby=dx.sc>=0?my-12:my+18;lby=Math.max(PAD.t+8,Math.min(PAD.t+ch-4,lby));
-    ctx.fillText(dx.zhi+(dx.sc>=0?'+':'')+dx.sc,mx,lby);
+    var lby=dx.sc>=0?my-12:my+18;
+    lby=Math.max(PAD.t+8,Math.min(PAD.t+ch-4,lby));
+    ctx.fillText(lbl,mx,lby);
   });
   // 灰色虛線：FM段
   if(fmEvs.length>0){
@@ -1107,6 +1180,8 @@ function doDraw(){
 
   document.getElementById('out').style.display='block';
   document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+  // 非同步送出資料庫（不阻擋畫面）
+  submitRecord(d, sorted, mAll, mNorm);
 }
 
 document.getElementById('drawBtn').onclick=function(){
