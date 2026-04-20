@@ -256,12 +256,23 @@ input[type=checkbox]{
 }
 
 /* ── 吻合率區塊 ── */
-.match-section{margin-top:18px;}
-.match-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
-.match-label{font-size:13px;color:var(--ink3);min-width:180px;}
-.match-num{font-size:24px;font-weight:600;font-family:'Noto Serif TC',serif;}
-.match-detail{font-size:12px;color:var(--ink3);}
-.match-note{font-size:12px;color:var(--gray);margin-top:4px;}
+.match-section{margin-top:20px;}
+.match-block{background:var(--paper2);border:1px solid var(--border);border-radius:4px;padding:16px 20px;margin-bottom:12px;}
+.match-block-title{font-size:12px;color:var(--ink3);margin-bottom:8px;letter-spacing:.5px;}
+.match-main{display:flex;align-items:baseline;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
+.match-num{font-size:36px;font-weight:700;font-family:'Noto Serif TC',serif;line-height:1;}
+.match-sub{font-size:12px;color:var(--ink3);}
+.match-bar-bg{height:6px;background:var(--paper3);border-radius:3px;overflow:hidden;margin-bottom:12px;}
+.match-bar-fill{height:6px;border-radius:3px;}
+.match-ev-list{display:flex;flex-direction:column;gap:5px;padding-top:10px;border-top:1px solid var(--border);}
+.match-ev-item{display:flex;align-items:center;gap:8px;font-size:12px;}
+.match-ev-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.match-ev-label{flex:1;color:var(--ink2);}
+.match-ev-scores{color:var(--ink3);min-width:130px;font-size:11px;}
+.match-ev-bar{width:60px;height:4px;background:var(--paper3);border-radius:2px;overflow:hidden;flex-shrink:0;}
+.match-ev-bar-fill{height:4px;border-radius:2px;}
+.match-ev-grade{font-weight:500;min-width:54px;text-align:right;}
+.match-note{font-size:12px;color:var(--gray);margin-top:8px;}
 
 /* ── 大限明細 ── */
 .daxi-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px;}
@@ -505,13 +516,32 @@ function cr(pts,x){
   return pts[pts.length-1].y;
 }
 function matchRate(evList,daxi){
-  if(!evList.length)return {m:0,t:0,p:0};
-  var m=0;
+  // 綜合吻合公式：方向 × 幅度相近程度，以事件情緒強度加權
+  if(!evList.length)return {score:0,p:0,details:[]};
+  var wSum=0,wScore=0,details=[];
   evList.forEach(function(ev){
-    var dx=null;for(var i=0;i<daxi.length;i++)if(ev.age>=daxi[i].sa&&ev.age<=daxi[i].ea){dx=daxi[i];break;}
-    if(dx&&((ev.score>0&&dx.sc>0)||(ev.score<0&&dx.sc<0)||(Math.abs(ev.score)<=1&&Math.abs(dx.sc)<=1)))m++;
+    var dx=null;
+    for(var i=0;i<daxi.length;i++)if(ev.age>=daxi[i].sa&&ev.age<=daxi[i].ea){dx=daxi[i];break;}
+    if(!dx){return;}
+    // 權重：事件情緒分數絕對值（0.1 最低，避免除零）
+    var w=Math.max(0.1,Math.abs(ev.score)/10);
+    // 方向判斷
+    var sameDir=(ev.score>0&&dx.sc>0)||(ev.score<0&&dx.sc<0)||(Math.abs(ev.score)<=1&&Math.abs(dx.sc)<=1);
+    // 幅度相近程度（0~1，差距越小越高）
+    var proximity=sameDir?Math.max(0,1-Math.abs(ev.score-dx.sc)/20):0;
+    var evScore=proximity;
+    wSum+=w;
+    wScore+=evScore*w;
+    // 等級判定
+    var grade,gradeCol;
+    if(!sameDir){grade='反差';gradeCol='#c0443a';}
+    else if(proximity>=0.75){grade='高度吻合';gradeCol='#3a8a5c';}
+    else if(proximity>=0.4){grade='中度吻合';gradeCol='#b8956a';}
+    else{grade='低度吻合';gradeCol='#7c7c9a';}
+    details.push({age:ev.age,label:ev.label,evSc:ev.score,dxSc:dx.sc,dxZhi:dx.zhi,proximity:proximity,sameDir:sameDir,grade:grade,gradeCol:gradeCol,w:w,fm:ev.fm});
   });
-  return {m:m,t:evList.length,p:Math.round(m/evList.length*100)};
+  var finalScore=wSum>0?wScore/wSum:0;
+  return {score:finalScore,p:Math.round(finalScore*100),details:details,t:evList.length};
 }
 
 function renderEv(){
@@ -688,17 +718,38 @@ function doDraw(){
   ctx.fillStyle='rgba(26,26,46,0.4)';ctx.font='12px "Noto Sans TC",sans-serif';ctx.textAlign='center';
   ctx.fillText('分數',0,0);ctx.restore();
 
-  // 吻合率
+  // 吻合率（綜合公式）
   var mAll=matchRate(sorted,daxi),mNorm=matchRate(normalEvs,daxi);
   var md=document.getElementById('matchDiv');md.innerHTML='';
-  function mkRow(label,res,col){
-    var row=document.createElement('div');row.className='match-row';
-    row.innerHTML='<span class="match-label">'+label+'</span><span class="match-num" style="color:'+col+'">'+res.p+'%</span><span class="match-detail">（'+res.t+' 個事件中有 '+res.m+' 個方向吻合）</span>';
-    md.appendChild(row);
+
+  function mkBlock(title,res,barCol){
+    var block=document.createElement('div');block.className='match-block';
+    var html='<div class="match-block-title">'+title+'</div>';
+    html+='<div class="match-main"><span class="match-num" style="color:'+barCol+'">'+res.p+'%</span><span class="match-sub">綜合吻合指數（方向×幅度×事件權重）</span></div>';
+    html+='<div class="match-bar-bg"><div class="match-bar-fill" style="width:'+res.p+'%;background:'+barCol+';"></div></div>';
+    if(res.details&&res.details.length){
+      html+='<div class="match-ev-list">';
+      res.details.forEach(function(d){
+        var evStr=(d.evSc>=0?'+':'')+d.evSc;
+        var dxStr=(d.dxSc>=0?'+':'')+d.dxSc;
+        var pct=Math.round(d.proximity*100);
+        html+='<div class="match-ev-item">';
+        html+='<span class="match-ev-dot" style="background:'+d.gradeCol+';"></span>';
+        html+='<span class="match-ev-label">'+d.age+'歲「'+d.label+'」'+(d.fm?' <span style="color:var(--gray);font-size:10px;">(不可抗力)</span>':'')+'</span>';
+        html+='<span class="match-ev-scores">事件'+evStr+' / 大限'+d.dxZhi+dxStr+'</span>';
+        html+='<span class="match-ev-bar"><span class="match-ev-bar-fill" style="width:'+pct+'%;background:'+d.gradeCol+';"></span></span>';
+        html+='<span class="match-ev-grade" style="color:'+d.gradeCol+'">'+d.grade+'</span>';
+        html+='</div>';
+      });
+      html+='</div>';
+    }
+    block.innerHTML=html;
+    md.appendChild(block);
   }
-  mkRow('全部事件與大限方向吻合率：',mAll,'#3c6e9f');
-  if(normalEvs.length>0)mkRow('應然曲線（排除不可抗力）吻合率：',mNorm,'#3a8a5c');
-  if(fmEvs.length>0){var n=document.createElement('div');n.className='match-note';n.textContent='灰色虛線段涵蓋 '+fmEvs.length+' 個不可抗力事件（不列入應然曲線計算）';md.appendChild(n);}
+
+  mkBlock('全部事件綜合吻合率',mAll,'#3c6e9f');
+  if(normalEvs.length>0&&fmEvs.length>0)mkBlock('應然曲線（排除不可抗力）吻合率',mNorm,'#3a8a5c');
+  if(fmEvs.length>0){var n=document.createElement('div');n.className='match-note';n.textContent='灰色虛線段涵蓋 '+fmEvs.length+' 個不可抗力事件；應然吻合率排除此類事件後計算';md.appendChild(n);}
 
   // 大限明細表
   var tbody=document.getElementById('dxBody');tbody.innerHTML='';
