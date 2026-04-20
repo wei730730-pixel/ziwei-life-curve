@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紫微人生曲線圖</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1a2e;
+  --ink2: #3d3d5c;
+  --ink3: #7c7c9a;
+  --paper: #faf8f3;
+  --paper2: #f2efe8;
+  --paper3: #e8e4d8;
+  --gold: #b8956a;
+  --gold2: #d4a96a;
+  --blue: #3c6e9f;
+  --blue2: #5a8fc0;
+  --red: #c0443a;
+  --green: #3a8a5c;
+  --gray: #9a9a9a;
+  --border: rgba(26,26,46,0.12);
+  --shadow: 0 2px 16px rgba(26,26,46,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Noto Sans TC',sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  font-size:15px;
+  line-height:1.7;
+  min-height:100vh;
+}
+
+/* ── 頂部標題區 ── */
+.hero{
+  background:var(--ink);
+  color:var(--paper);
+  padding:48px 24px 40px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+}
+.hero::before{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent,transparent 40px,rgba(184,149,106,0.04) 40px,rgba(184,149,106,0.04) 41px);
+}
+.hero-badge{
+  display:inline-block;
+  border:1px solid var(--gold);
+  color:var(--gold);
+  font-size:11px;
+  letter-spacing:3px;
+  padding:4px 14px;
+  margin-bottom:18px;
+  font-family:'Noto Serif TC',serif;
+}
+.hero h1{
+  font-family:'Noto Serif TC',serif;
+  font-size:clamp(28px,5vw,44px);
+  font-weight:700;
+  letter-spacing:6px;
+  margin-bottom:12px;
+  position:relative;
+}
+.hero h1 span{color:var(--gold2);}
+.hero p{
+  color:rgba(250,248,243,0.6);
+  font-size:13px;
+  letter-spacing:1px;
+  position:relative;
+}
+
+/* ── 主容器 ── */
+.container{max-width:860px;margin:0 auto;padding:0 20px;}
+
+/* ── 步驟卡片 ── */
+.card{
+  background:#fff;
+  border:1px solid var(--border);
+  border-radius:4px;
+  padding:28px 32px;
+  margin-top:24px;
+  box-shadow:var(--shadow);
+}
+.card-title{
+  font-family:'Noto Serif TC',serif;
+  font-size:16px;
+  font-weight:600;
+  color:var(--ink);
+  margin-bottom:18px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.step-num{
+  width:26px;height:26px;
+  background:var(--ink);
+  color:var(--paper);
+  border-radius:50%;
+  font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Noto Sans TC',sans-serif;
+  flex-shrink:0;
+}
+
+/* ── 表單元素 ── */
+.field-row{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.field-label{font-size:13px;color:var(--ink3);white-space:nowrap;min-width:60px;}
+select,input[type=number],input[type=text]{
+  border:1px solid var(--paper3);
+  border-radius:3px;
+  padding:7px 10px;
+  font-size:13px;
+  font-family:'Noto Sans TC',sans-serif;
+  background:#fff;
+  color:var(--ink);
+  transition:border-color .2s;
+}
+select:focus,input:focus{outline:none;border-color:var(--gold);}
+input[type=range]{
+  -webkit-appearance:none;
+  width:90px;height:4px;
+  background:var(--paper3);
+  border-radius:2px;border:none;padding:0;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  width:16px;height:16px;
+  border-radius:50%;
+  background:var(--ink);
+  cursor:pointer;
+}
+input[type=checkbox]{
+  width:15px;height:15px;
+  accent-color:var(--gray);
+  cursor:pointer;
+}
+.score-val{font-size:12px;font-weight:500;min-width:28px;text-align:right;}
+.fm-wrap{display:flex;align-items:center;gap:5px;white-space:nowrap;}
+.fm-label{font-size:11px;color:var(--ink3);}
+
+/* ── 事件列 ── */
+.ev-row{
+  display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;
+  padding:8px 10px;
+  background:var(--paper);
+  border-radius:3px;
+  border:1px solid var(--border);
+}
+.ev-row input[type=number]{width:58px;}
+.ev-row input[type=text]{flex:1;min-width:100px;}
+.ev-row input[type=range]{width:80px;}
+
+/* ── 按鈕 ── */
+.btn-primary{
+  background:var(--ink);
+  color:var(--paper);
+  border:none;
+  padding:11px 28px;
+  font-size:14px;
+  font-family:'Noto Serif TC',serif;
+  letter-spacing:2px;
+  cursor:pointer;
+  border-radius:3px;
+  transition:background .2s,transform .1s;
+}
+.btn-primary:hover{background:var(--ink2);}
+.btn-primary:active{transform:scale(0.98);}
+.btn-secondary{
+  background:transparent;
+  color:var(--ink);
+  border:1px solid var(--border);
+  padding:8px 18px;
+  font-size:13px;
+  font-family:'Noto Sans TC',sans-serif;
+  cursor:pointer;
+  border-radius:3px;
+  transition:background .2s;
+}
+.btn-secondary:hover{background:var(--paper2);}
+.btn-gold{
+  background:var(--gold);
+  color:#fff;
+  border:none;
+  padding:11px 28px;
+  font-size:14px;
+  font-family:'Noto Serif TC',serif;
+  letter-spacing:2px;
+  cursor:pointer;
+  border-radius:3px;
+  transition:background .2s;
+}
+.btn-gold:hover{background:var(--gold2);}
+.btn-del{
+  background:transparent;border:none;
+  color:var(--gray);font-size:14px;
+  cursor:pointer;padding:2px 6px;
+  border-radius:2px;
+}
+.btn-del:hover{color:var(--red);}
+.btn-add{
+  background:transparent;
+  border:1px dashed var(--paper3);
+  color:var(--ink3);
+  font-size:12px;padding:6px 14px;
+  cursor:pointer;border-radius:3px;
+  margin-top:4px;
+  transition:border-color .2s,color .2s;
+}
+.btn-add:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ── 排盤結果卡片 ── */
+.result-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.chip{
+  padding:5px 12px;
+  background:var(--paper2);
+  border:1px solid var(--border);
+  border-radius:2px;
+  font-size:12px;
+}
+.chip .cl{color:var(--ink3);font-size:10px;display:block;margin-bottom:1px;}
+.chip .cv{font-weight:500;}
+.chip.hl{background:var(--ink);color:var(--paper);}
+.chip.hl .cl{color:rgba(250,248,243,0.6);}
+
+/* ── 評分模式標籤 ── */
+.mode-tag{
+  display:inline-block;
+  font-size:12px;padding:5px 12px;
+  border-radius:2px;margin-bottom:14px;
+}
+.mode-yang{background:#eaf3de;color:#27500a;border:1px solid #c0dd97;}
+.mode-yin{background:#fbeaf0;color:#72243e;border:1px solid #f4c0d1;}
+
+/* ── 圖例 ── */
+.legend{display:flex;gap:18px;font-size:12px;color:var(--ink3);margin-bottom:10px;flex-wrap:wrap;align-items:center;}
+.leg-item{display:flex;align-items:center;gap:6px;}
+.leg-line{width:24px;height:3px;border-radius:2px;}
+.leg-dash{width:24px;height:0;border-top:2px dashed var(--gray);}
+.leg-circle{width:10px;height:10px;border-radius:50%;border:2px solid var(--gray);}
+
+/* ── Canvas ── */
+#cvs{
+  display:block;
+  border:1px solid var(--border);
+  border-radius:3px;
+  background:#fff;
+}
+
+/* ── 吻合率區塊 ── */
+.match-section{margin-top:18px;}
+.match-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+.match-label{font-size:13px;color:var(--ink3);min-width:180px;}
+.match-num{font-size:24px;font-weight:600;font-family:'Noto Serif TC',serif;}
+.match-detail{font-size:12px;color:var(--ink3);}
+.match-note{font-size:12px;color:var(--gray);margin-top:4px;}
+
+/* ── 大限明細 ── */
+.daxi-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12px;}
+.daxi-table th{
+  text-align:left;padding:7px 10px;
+  background:var(--paper2);
+  color:var(--ink3);
+  font-weight:500;
+  border-bottom:1px solid var(--border);
+}
+.daxi-table td{padding:7px 10px;border-bottom:1px solid rgba(26,26,46,0.05);}
+.daxi-table tr.cur-row{background:rgba(184,149,106,0.08);}
+.gp{color:var(--green);font-weight:500;}
+.rp{color:var(--red);font-weight:500;}
+.np{color:var(--gray);}
+
+/* ── 頁尾 ── */
+footer{
+  text-align:center;
+  padding:32px 20px;
+  margin-top:40px;
+  color:var(--ink3);
+  font-size:12px;
+  border-top:1px solid var(--border);
+}
+footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
+
+/* ── 說明手風琴 ── */
+.info-box{
+  background:var(--paper2);
+  border-left:3px solid var(--gold);
+  padding:10px 14px;
+  font-size:12px;
+  color:var(--ink3);
+  margin-bottom:14px;
+  line-height:1.8;
+  border-radius:0 3px 3px 0;
+}
+
+@media(max-width:600px){
+  .card{padding:20px 16px;}
+  .hero{padding:36px 16px 28px;}
+  .ev-row input[type=range]{width:60px;}
+}
+</style>
+</head>
+<body>
+
+<!-- 頂部 Hero -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-badge">ZIWEI LIFE CURVE</div>
+    <h1>紫微<span>人生曲線圖</span></h1>
+    <p>結合人生重要事件與紫微斗數大限，探索命運的波動規律</p>
+  </div>
+</div>
+
+<div class="container" style="padding-bottom:40px;">
+
+<!-- 步驟一 -->
+<div class="card">
+  <div class="card-title"><span class="step-num">1</span>生辰資料</div>
+  <div class="field-row">
+    <span class="field-label">農曆生年</span>
+    <input type="number" id="by" value="1984" min="1920" max="2010" style="width:84px;" oninput="updateAge()">
+    <span class="field-label" style="margin-left:8px;">目前年齡</span>
+    <span id="ageDisplay" style="font-size:14px;font-weight:500;color:var(--gold);">42</span>
+    <span style="font-size:12px;color:var(--ink3);">歲（自動）</span>
+  </div>
+  <div class="field-row">
+    <span class="field-label">農曆生月</span>
+    <select id="bm">
+      <option value="1">正月</option><option value="2">二月</option><option value="3">三月</option>
+      <option value="4">四月</option><option value="5">五月</option><option value="6">六月</option>
+      <option value="7">七月</option><option value="8">八月</option><option value="9">九月</option>
+      <option value="10">十月</option><option value="11">十一月</option><option value="12">十二月</option>
+    </select>
+    <span class="field-label">農曆生日</span>
+    <select id="bd">
+      <option value="1">初一</option><option value="2">初二</option><option value="3">初三</option>
+      <option value="4">初四</option><option value="5">初五</option><option value="6">初六</option>
+      <option value="7">初七</option><option value="8">初八</option><option value="9">初九</option>
+      <option value="10">初十</option><option value="11">十一</option><option value="12">十二</option>
+      <option value="13">十三</option><option value="14">十四</option><option value="15">十五</option>
+      <option value="16">十六</option><option value="17">十七</option><option value="18">十八</option>
+      <option value="19">十九</option><option value="20">二十</option><option value="21">廿一</option>
+      <option value="22">廿二</option><option value="23">廿三</option><option value="24">廿四</option>
+      <option value="25">廿五</option><option value="26">廿六</option><option value="27">廿七</option>
+      <option value="28">廿八</option><option value="29">廿九</option><option value="30">三十</option>
+    </select>
+  </div>
+  <div class="field-row">
+    <span class="field-label">生時</span>
+    <select id="bh">
+      <option value="0">子時(23-1)</option><option value="1">丑時(1-3)</option>
+      <option value="2">寅時(3-5)</option><option value="3">卯時(5-7)</option>
+      <option value="4">辰時(7-9)</option><option value="5">巳時(9-11)</option>
+      <option value="6">午時(11-13)</option><option value="7">未時(13-15)</option>
+      <option value="8">申時(15-17)</option><option value="9">酉時(17-19)</option>
+      <option value="10">戌時(19-21)</option><option value="11">亥時(21-23)</option>
+    </select>
+    <span class="field-label">性別</span>
+    <select id="gdr"><option value="M">男</option><option value="F">女</option></select>
+  </div>
+</div>
+
+<!-- 步驟二 -->
+<div class="card">
+  <div class="card-title"><span class="step-num">2</span>人生重要事件</div>
+  <div class="info-box">
+    填入對您人生有重大影響的事件。「不可抗力」代表此事件由外力造成（天災、意外、他人決定等），勾選後將以灰色虛線標示，並另計算排除後的應然吻合率。
+  </div>
+  <div id="evc"></div>
+  <button class="btn-add" id="addEvBtn">＋ 新增事件</button>
+</div>
+
+<!-- 產生按鈕 -->
+<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+  <button class="btn-primary" id="drawBtn">產 生 曲 線 圖</button>
+  <button class="btn-gold" id="aiBtn">AI 深度解讀 ↗</button>
+</div>
+
+<!-- 結果區 -->
+<div id="out" style="display:none;">
+
+  <!-- 排盤結果 -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">✦</span>排盤結果</div>
+    <div id="rcards" class="result-chips"></div>
+    <div id="modeTag"></div>
+
+    <!-- 圖例 -->
+    <div class="legend">
+      <div class="leg-item"><span class="leg-line" style="background:var(--blue);"></span>應然曲線（排除不可抗力）</div>
+      <div class="leg-item"><span class="leg-dash"></span>不可抗力偏離段</div>
+      <div class="leg-item"><span class="leg-line" style="background:var(--red);"></span>大限曲線</div>
+      <div class="leg-item"><span class="leg-circle"></span>不可抗力事件</div>
+    </div>
+
+    <canvas id="cvs" width="800" height="400"></canvas>
+
+    <!-- 吻合率 -->
+    <div class="match-section" id="matchDiv"></div>
+  </div>
+
+  <!-- 大限明細 -->
+  <div class="card">
+    <div class="card-title"><span class="step-num">✦</span>大限評分明細</div>
+    <div style="overflow-x:auto;">
+      <table class="daxi-table" id="dxTable">
+        <thead>
+          <tr>
+            <th>大限區間</th><th>宮位</th><th>宮名</th><th>主星</th><th>中點</th><th>原始分</th><th>換算分</th>
+          </tr>
+        </thead>
+        <tbody id="dxBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /out -->
+
+</div><!-- /container -->
+
+<footer>
+  <div class="container">
+    <strong>紫微人生曲線圖</strong> &nbsp;｜&nbsp; 發明人：[您的名字] &nbsp;｜&nbsp; © 2026 版權所有<br>
+    <span style="margin-top:6px;display:block;">本系統所有資料僅供研究用途，個人資料依法保護</span>
+  </div>
+</footer>
+
+<script>
+var THISYEAR=2026;
+var evs=[
+  {age:10,label:'重要事件一',score:7,fm:false},
+  {age:20,label:'重要事件二',score:5,fm:false},
+  {age:30,label:'重要事件三',score:-4,fm:false},
+];
+var ZHI=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+var GAN=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+var PN=['命宮','兄弟','夫妻','子女','財帛','疾厄','遷移','僕役','官祿','田宅','福德','父母'];
+var YANG=['七殺','破軍','廉貞','貪狼','紫微','天府','武曲','天相'];
+var YIN=['太陽','巨門','天機','太陰','天梁','天同'];
+var SS={'七殺':8,'破軍':7,'廉貞':6,'貪狼':5,'紫微':4,'天府':3,'武曲':2,'天相':1,'太陽':-1,'巨門':-2,'天機':-3,'太陰':-4,'天梁':-5,'天同':-6};
+var JU_NUM={'水二局':2,'木三局':3,'金四局':4,'土五局':5,'火六局':6};
+var JU={'甲己':{'子丑':'水二局','寅卯':'火六局','辰巳':'木三局','午未':'土五局','申酉':'金四局','戌亥':'火六局'},'乙庚':{'子丑':'火六局','寅卯':'土五局','辰巳':'金四局','午未':'木三局','申酉':'水二局','戌亥':'土五局'},'丙辛':{'子丑':'土五局','寅卯':'木三局','辰巳':'水二局','午未':'金四局','申酉':'火六局','戌亥':'木三局'},'丁壬':{'子丑':'木三局','寅卯':'金四局','辰巳':'火六局','午未':'水二局','申酉':'土五局','戌亥':'金四局'},'戊癸':{'子丑':'金四局','寅卯':'水二局','辰巳':'土五局','午未':'火六局','申酉':'木三局','戌亥':'水二局'}};
+var GG={'甲己':['甲','己'],'乙庚':['乙','庚'],'丙辛':['丙','辛'],'丁壬':['丁','壬'],'戊癸':['戊','癸']};
+var ZP={'子丑':['子','丑'],'寅卯':['寅','卯'],'辰巳':['辰','巳'],'午未':['午','未'],'申酉':['申','酉'],'戌亥':['戌','亥']};
+var TF={'子':'辰','丑':'卯','寅':'寅','卯':'丑','辰':'子','巳':'亥','午':'戌','未':'酉','申':'申','酉':'未','戌':'午','亥':'巳'};
+var ZW={'水二局':{1:'丑',2:'寅',3:'寅',4:'卯',5:'卯',6:'辰',7:'辰',8:'巳',9:'巳',10:'午',11:'午',12:'未',13:'未',14:'申',15:'申',16:'酉',17:'酉',18:'戌',19:'戌',20:'亥',21:'亥',22:'子',23:'子',24:'丑',25:'丑',26:'寅',27:'寅',28:'卯',29:'卯',30:'辰'},'木三局':{1:'辰',2:'丑',3:'寅',4:'巳',5:'寅',6:'卯',7:'午',8:'卯',9:'辰',10:'未',11:'辰',12:'巳',13:'申',14:'巳',15:'午',16:'酉',17:'午',18:'未',19:'戌',20:'未',21:'申',22:'亥',23:'申',24:'酉',25:'子',26:'酉',27:'戌',28:'丑',29:'戌',30:'亥'},'金四局':{1:'亥',2:'辰',3:'丑',4:'寅',5:'子',6:'巳',7:'寅',8:'卯',9:'丑',10:'午',11:'卯',12:'辰',13:'寅',14:'未',15:'辰',16:'巳',17:'卯',18:'申',19:'巳',20:'午',21:'辰',22:'酉',23:'午',24:'未',25:'巳',26:'戌',27:'未',28:'申',29:'午',30:'亥'},'土五局':{1:'午',2:'亥',3:'辰',4:'丑',5:'寅',6:'未',7:'子',8:'巳',9:'寅',10:'卯',11:'申',12:'丑',13:'午',14:'卯',15:'辰',16:'酉',17:'寅',18:'未',19:'辰',20:'巳',21:'戌',22:'卯',23:'申',24:'巳',25:'午',26:'亥',27:'辰',28:'酉',29:'午',30:'未'},'火六局':{1:'酉',2:'午',3:'亥',4:'辰',5:'丑',6:'寅',7:'戌',8:'未',9:'子',10:'巳',11:'寅',12:'卯',13:'亥',14:'申',15:'丑',16:'午',17:'卯',18:'辰',19:'子',20:'酉',21:'寅',22:'未',23:'辰',24:'辰',25:'巳',26:'亥',27:'午',28:'卯',29:'巳',30:'午'}};
+
+function zi(z){return ZHI.indexOf(z);}
+function zn(i){return ZHI[((i%12)+12)%12];}
+function getGan(y){return GAN[((y-4)%10+10)%10];}
+function isYang(g){return ['甲','丙','戊','庚','壬'].indexOf(g)>=0;}
+function getGG(g){for(var k in GG)if(GG[k].indexOf(g)>=0)return k;return '';}
+function getZG(z){for(var k in ZP)if(ZP[k].indexOf(z)>=0)return k;return '';}
+function getJu(g,z){return (JU[getGG(g)]||{})[getZG(z)]||'未知';}
+function getMing(m,h){return zn(zi('寅')+m-1-h);}
+function opp(z){return zn(zi(z)+6);}
+function getCurAge(){return THISYEAR-(+document.getElementById('by').value);}
+function updateAge(){document.getElementById('ageDisplay').textContent=getCurAge();}
+function buildStars(zw){
+  var b=zi(zw),tb=zi(TF[zw]),mp={};
+  function add(z,s){if(!mp[z])mp[z]=[];mp[z].push(s);}
+  [[0,'紫微'],[-1,'天機'],[-3,'太陽'],[-4,'武曲'],[-5,'天同'],[-8,'廉貞']].forEach(function(x){add(zn(b+x[0]),x[1]);});
+  [[0,'天府'],[1,'太陰'],[2,'貪狼'],[3,'巨門'],[4,'天相'],[5,'天梁'],[6,'七殺'],[10,'破軍']].forEach(function(x){add(zn(tb+x[0]),x[1]);});
+  return mp;
+}
+function getMYY(mz,sm){
+  var ss=sm[mz]||[];if(!ss.length)ss=sm[opp(mz)]||[];
+  for(var i=0;i<ss.length;i++){if(YANG.indexOf(ss[i])>=0)return {t:'陽',s:ss};if(YIN.indexOf(ss[i])>=0)return {t:'陰',s:ss};}
+  return {t:'陽',s:ss};
+}
+function sScore(s,yin){return yin?-(SS[s]||0):(SS[s]||0);}
+function dxScore(z,sm,yin){
+  var ss=sm[z]||[],bor=false;
+  if(!ss.length){ss=sm[opp(z)]||[];bor=true;}
+  if(!ss.length)return {ss:[],bor:false,raw:0,mapped:0};
+  var raw=0;for(var i=0;i<ss.length;i++)raw+=sScore(ss[i],yin);raw/=ss.length;
+  return {ss:ss,bor:bor,raw:raw,mapped:Math.max(-10,Math.min(10,Math.round(raw/8*10*10)/10))};
+}
+function buildDaxi(mz,jn,fwd,cur,sm,yin){
+  var mi=zi(mz),pn={};for(var i=0;i<12;i++)pn[zn(mi+i)]=PN[i];
+  var r=[];
+  for(var i=0;i<12;i++){
+    var sa=jn+i*10,ea=sa+9,mid=sa+4.5,pi=fwd?(mi+i)%12:((mi-i)%12+12)%12,z=ZHI[pi],sd=dxScore(z,sm,yin);
+    r.push({n:i+1,sa:sa,ea:ea,mid:mid,zhi:z,pn:pn[z]||'',ss:sd.ss,bor:sd.bor,raw:sd.raw,sc:sd.mapped,cur:cur>=sa&&cur<=ea});
+  }
+  return r;
+}
+function cr(pts,x){
+  if(!pts.length)return 0;if(x<=pts[0].x)return pts[0].y;if(x>=pts[pts.length-1].x)return pts[pts.length-1].y;
+  for(var i=0;i<pts.length-1;i++){
+    if(x>=pts[i].x&&x<=pts[i+1].x){
+      var p0=pts[Math.max(0,i-1)],p1=pts[i],p2=pts[i+1],p3=pts[Math.min(pts.length-1,i+2)];
+      var t=(x-p1.x)/(p2.x-p1.x),t2=t*t,t3=t2*t;
+      return 0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3);
+    }
+  }
+  return pts[pts.length-1].y;
+}
+function matchRate(evList,daxi){
+  if(!evList.length)return {m:0,t:0,p:0};
+  var m=0;
+  evList.forEach(function(ev){
+    var dx=null;for(var i=0;i<daxi.length;i++)if(ev.age>=daxi[i].sa&&ev.age<=daxi[i].ea){dx=daxi[i];break;}
+    if(dx&&((ev.score>0&&dx.sc>0)||(ev.score<0&&dx.sc<0)||(Math.abs(ev.score)<=1&&Math.abs(dx.sc)<=1)))m++;
+  });
+  return {m:m,t:evList.length,p:Math.round(m/evList.length*100)};
+}
+
+function renderEv(){
+  var c=document.getElementById('evc');c.innerHTML='';
+  for(var i=0;i<evs.length;i++){
+    (function(idx){
+      var e=evs[idx],r=document.createElement('div');r.className='ev-row';
+      var col=e.score>=0?'var(--green)':'var(--red)';
+      r.innerHTML='<span class="field-label">年齡</span><input type="number" value="'+e.age+'" min="0" max="100" style="width:60px;"><input type="text" value="'+e.label+'" placeholder="事件描述" style="flex:1;min-width:100px;"><span class="field-label">情緒</span><input type="range" min="-10" max="10" step="1" value="'+e.score+'" style="width:80px;"><span class="score-val" style="color:'+col+'">'+(e.score>=0?'+':'')+e.score+'</span><div class="fm-wrap"><input type="checkbox"'+(e.fm?' checked':'')+'><span class="fm-label">不可抗力</span></div><button class="btn-del" title="刪除">✕</button>';
+      var ins=r.querySelectorAll('input');
+      ins[0].onchange=function(){evs[idx].age=+this.value;};
+      ins[1].onchange=function(){evs[idx].label=this.value;};
+      ins[2].oninput=function(){evs[idx].score=+this.value;var sp=r.querySelector('.score-val');sp.textContent=(+this.value>=0?'+':'')+this.value;sp.style.color=+this.value>=0?'var(--green)':'var(--red)';};
+      ins[3].onchange=function(){evs[idx].fm=this.checked;};
+      r.querySelector('.btn-del').onclick=function(){evs.splice(idx,1);renderEv();};
+      c.appendChild(r);
+    })(i);
+  }
+}
+document.getElementById('addEvBtn').onclick=function(){evs.push({age:20,label:'新事件',score:0,fm:false});renderEv();};
+updateAge();renderEv();
+
+function calc(){
+  var year=+document.getElementById('by').value,month=+document.getElementById('bm').value,day=+document.getElementById('bd').value,hour=+document.getElementById('bh').value;
+  var gender=document.getElementById('gdr').value,curAge=getCurAge();
+  var gan=getGan(year),mz=getMing(month,hour),ju=getJu(gan,mz),jn=JU_NUM[ju]||2;
+  var zw=(ZW[ju]||{})[day]||'子',yng=isYang(gan),fwd=gender==='M'?yng:!yng;
+  var sm=buildStars(zw),myInfo=getMYY(mz,sm),isYin=myInfo.t==='陰';
+  var daxi=buildDaxi(mz,jn,fwd,curAge,sm,isYin);
+  return {gan:gan,mz:mz,ju:ju,jn:jn,zw:zw,yng:yng,fwd:fwd,daxi:daxi,curAge:curAge,gender:gender,myInfo:myInfo,isYin:isYin};
+}
+
+document.getElementById('drawBtn').onclick=function(){
+  var d=calc(),daxi=d.daxi;
+  // 資訊卡
+  var cards=document.getElementById('rcards');cards.innerHTML='';
+  [{l:'年干',v:d.gan+'（'+(d.yng?'陽':'陰')+'年）'},{l:'命宮',v:d.mz+'宮'},{l:'命宮主星',v:d.myInfo.s.join('、')||'空宮',hl:true},{l:'五行局',v:d.ju},{l:'起步年齡',v:d.jn+'歲'},{l:'紫微',v:d.zw+'宮'},{l:'大限',v:d.fwd?'順行':'逆行'},{l:'目前年齡',v:d.curAge+'歲'}].forEach(function(x){
+    var el=document.createElement('div');el.className='chip'+(x.hl?' hl':'');
+    el.innerHTML='<span class="cl">'+x.l+'</span><span class="cv">'+x.v+'</span>';
+    cards.appendChild(el);
+  });
+  var mt=document.getElementById('modeTag');
+  mt.innerHTML='<span class="mode-tag '+(d.isYin?'mode-yin':'mode-yang')+'">'+(d.isYin?'命宮主星為陰性 → 陰性評分表（殺-8…同+6）':'命宮主星為陽性 → 陽性評分表（殺+8…同-6）')+'</span>';
+
+  var sorted=evs.slice().sort(function(a,b){return a.age-b.age;});
+  if(!sorted.length){alert('請先新增至少一筆事件！');return;}
+  var normalEvs=sorted.filter(function(e){return !e.fm;});
+  var fmEvs=sorted.filter(function(e){return e.fm;});
+
+  var minA=Math.max(0,daxi[0].sa-1),maxA=daxi[daxi.length-1].ea+2;
+  var cvs=document.getElementById('cvs');
+  var W=cvs.parentElement.clientWidth-2||798;
+  cvs.width=W;cvs.height=400;
+  var ctx=cvs.getContext('2d');
+  var PAD={t:28,r:28,b:52,l:54};
+  var cw=W-PAD.l-PAD.r,ch=400-PAD.t-PAD.b;
+  function ax(a){return PAD.l+((a-minA)/(maxA-minA))*cw;}
+  function ay(s){return PAD.t+((-s+11)/22)*ch;}
+  ctx.clearRect(0,0,W,400);
+  // 格線
+  [-10,-8,-6,-4,-2,0,2,4,6,8,10].forEach(function(v){
+    var y=ay(v);
+    ctx.strokeStyle=v===0?'rgba(26,26,46,0.25)':'rgba(26,26,46,0.07)';
+    ctx.lineWidth=v===0?1.5:1;
+    ctx.beginPath();ctx.moveTo(PAD.l,y);ctx.lineTo(PAD.l+cw,y);ctx.stroke();
+    ctx.fillStyle='rgba(26,26,46,0.5)';ctx.font='11px "Noto Sans TC",sans-serif';ctx.textAlign='right';
+    ctx.fillText((v>0?'+':'')+v,PAD.l-8,y+4);
+  });
+  // X軸
+  ctx.fillStyle='rgba(26,26,46,0.45)';ctx.font='11px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+  for(var a=Math.ceil(minA/10)*10;a<=maxA;a+=10){
+    ctx.fillText(a,ax(a),PAD.t+ch+20);
+    ctx.strokeStyle='rgba(26,26,46,0.07)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ax(a),PAD.t);ctx.lineTo(ax(a),PAD.t+ch);ctx.stroke();
+  }
+  ctx.fillStyle='rgba(26,26,46,0.4)';ctx.font='12px "Noto Sans TC",sans-serif';
+  ctx.fillText('年齡（歲）',PAD.l+cw/2,PAD.t+ch+42);
+  // 現在線
+  var cx2=ax(d.curAge);
+  if(cx2>=PAD.l&&cx2<=PAD.l+cw){
+    ctx.strokeStyle='rgba(184,149,106,0.4)';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.moveTo(cx2,PAD.t);ctx.lineTo(cx2,PAD.t+ch);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='rgba(184,149,106,0.7)';ctx.font='10px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+    ctx.fillText('現在',cx2,PAD.t-8);
+  }
+  // 大限色帶
+  daxi.forEach(function(dx,i){
+    ctx.fillStyle=i%2===0?'rgba(60,110,159,0.03)':'rgba(60,110,159,0.07)';
+    ctx.fillRect(ax(dx.sa),PAD.t,ax(dx.ea+1)-ax(dx.sa),ch);
+    ctx.strokeStyle='rgba(26,26,46,0.08)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(ax(dx.sa),PAD.t);ctx.lineTo(ax(dx.sa),PAD.t+ch);ctx.stroke();
+  });
+  // 大限曲線
+  var dxPts=[{x:daxi[0].sa,y:0}];
+  for(var i=0;i<daxi.length;i++)dxPts.push({x:daxi[i].mid,y:daxi[i].sc});
+  dxPts.push({x:daxi[daxi.length-1].ea,y:0});
+  var dxExt=[{x:dxPts[0].x-5,y:0}].concat(dxPts).concat([{x:dxPts[dxPts.length-1].x+5,y:0}]);
+  ctx.strokeStyle='#c0443a';ctx.lineWidth=2;ctx.setLineDash([]);
+  ctx.beginPath();var st=false;
+  for(var a=daxi[0].sa;a<=daxi[daxi.length-1].ea;a+=0.2){
+    var sc=Math.max(-10,Math.min(10,cr(dxExt,a)));
+    var px=ax(a),py=ay(sc);
+    if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  // 大限中點菱形
+  daxi.forEach(function(dx){
+    var mx=ax(dx.mid),my=ay(dx.sc);
+    var col=dx.sc>0.5?'#3a8a5c':dx.sc<-0.5?'#c0443a':'#9a9a9a';
+    ctx.beginPath();ctx.moveTo(mx,my-5);ctx.lineTo(mx+5,my);ctx.lineTo(mx,my+5);ctx.lineTo(mx-5,my);ctx.closePath();
+    ctx.fillStyle=col;ctx.fill();
+    ctx.fillStyle=col;ctx.font='bold 11px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+    var lby=dx.sc>=0?my-12:my+18;lby=Math.max(PAD.t+8,Math.min(PAD.t+ch-4,lby));
+    ctx.fillText(dx.zhi+(dx.sc>=0?'+':'')+dx.sc,mx,lby);
+  });
+  // 灰色虛線：FM段
+  if(fmEvs.length>0){
+    var allPts=sorted.map(function(e){return {x:e.age,y:e.score};});
+    var allExt=[{x:allPts[0].x-5,y:allPts[0].y}].concat(allPts).concat([{x:allPts[allPts.length-1].x+5,y:allPts[allPts.length-1].y}]);
+    var graySegs=[];var i2=0;
+    while(i2<sorted.length){
+      if(sorted[i2].fm){
+        var prevIdx=i2-1,nextIdx=i2;
+        while(nextIdx<sorted.length&&sorted[nextIdx].fm)nextIdx++;
+        graySegs.push({from:prevIdx>=0?sorted[prevIdx].age:sorted[0].age,to:nextIdx<sorted.length?sorted[nextIdx].age:sorted[sorted.length-1].age});
+        i2=nextIdx;
+      }else i2++;
+    }
+    graySegs.forEach(function(seg){
+      ctx.strokeStyle='#bbbbbb';ctx.lineWidth=1.8;ctx.setLineDash([6,4]);
+      ctx.beginPath();st=false;
+      for(var a=seg.from;a<=seg.to;a+=0.2){
+        var sc=Math.max(-10,Math.min(10,cr(allExt,a)));
+        var px=ax(a),py=ay(sc);
+        if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);
+      }
+      ctx.stroke();ctx.setLineDash([]);
+    });
+  }
+  // 應然曲線（藍色實線）
+  if(normalEvs.length>=1){
+    var nPts=normalEvs.map(function(e){return {x:e.age,y:e.score};});
+    var nExt=[{x:nPts[0].x-5,y:nPts[0].y}].concat(nPts).concat([{x:nPts[nPts.length-1].x+5,y:nPts[nPts.length-1].y}]);
+    ctx.strokeStyle='#3c6e9f';ctx.lineWidth=2.5;ctx.setLineDash([]);
+    ctx.beginPath();st=false;
+    for(var a=normalEvs[0].age;a<=normalEvs[normalEvs.length-1].age;a+=0.3){
+      var sc=Math.max(-10,Math.min(10,cr(nExt,a)));
+      var px=ax(a),py=ay(sc);
+      if(!st){ctx.moveTo(px,py);st=true;}else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+  }
+  // 事件標記點
+  sorted.forEach(function(ev){
+    var x=ax(ev.age),y=ay(ev.score);
+    if(ev.fm){
+      ctx.beginPath();ctx.arc(x,y,6,0,Math.PI*2);ctx.strokeStyle='#bbbbbb';ctx.lineWidth=2;ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='rgba(200,200,200,0.3)';ctx.fill();
+      ctx.fillStyle='#bbbbbb';ctx.font='italic 11px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+    }else{
+      var col=ev.score>=0?'#3a8a5c':'#c0443a';
+      ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+      ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.fillStyle=col;ctx.font='11px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+    }
+    var lbl=ev.label.length>5?ev.label.slice(0,5)+'…':ev.label;
+    var ly=ev.score>=0?y-14:y+20;ly=Math.max(PAD.t+10,Math.min(PAD.t+ch-4,ly));
+    ctx.fillText(lbl,x,ly);
+  });
+  // Y軸標題
+  ctx.save();ctx.translate(16,PAD.t+ch/2);ctx.rotate(-Math.PI/2);
+  ctx.fillStyle='rgba(26,26,46,0.4)';ctx.font='12px "Noto Sans TC",sans-serif';ctx.textAlign='center';
+  ctx.fillText('分數',0,0);ctx.restore();
+
+  // 吻合率
+  var mAll=matchRate(sorted,daxi),mNorm=matchRate(normalEvs,daxi);
+  var md=document.getElementById('matchDiv');md.innerHTML='';
+  function mkRow(label,res,col){
+    var row=document.createElement('div');row.className='match-row';
+    row.innerHTML='<span class="match-label">'+label+'</span><span class="match-num" style="color:'+col+'">'+res.p+'%</span><span class="match-detail">（'+res.t+' 個事件中有 '+res.m+' 個方向吻合）</span>';
+    md.appendChild(row);
+  }
+  mkRow('全部事件與大限方向吻合率：',mAll,'#3c6e9f');
+  if(normalEvs.length>0)mkRow('應然曲線（排除不可抗力）吻合率：',mNorm,'#3a8a5c');
+  if(fmEvs.length>0){var n=document.createElement('div');n.className='match-note';n.textContent='灰色虛線段涵蓋 '+fmEvs.length+' 個不可抗力事件（不列入應然曲線計算）';md.appendChild(n);}
+
+  // 大限明細表
+  var tbody=document.getElementById('dxBody');tbody.innerHTML='';
+  daxi.forEach(function(dx){
+    var sc=dx.sc,cls=sc>0.5?'gp':sc<-0.5?'rp':'np';
+    var raw=(dx.raw>=0?'+':'')+dx.raw.toFixed(1);
+    var tr=document.createElement('tr');if(dx.cur)tr.className='cur-row';
+    tr.innerHTML='<td>'+dx.sa+'～'+dx.ea+'歲</td><td>'+dx.zhi+'</td><td>'+dx.pn+'</td><td>'+(dx.ss.length?dx.ss.join('、'):'空宮')+(dx.bor?' <span style="color:var(--gray);font-size:10px;">(借對宮)</span>':'')+'</td><td>'+dx.mid+'歲</td><td>'+raw+'</td><td class="'+cls+'">'+(sc>=0?'+':'')+sc+'</td>';
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('out').style.display='block';
+  document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+document.getElementById('aiBtn').onclick=function(){
+  alert('AI 深度解讀功能需要搭配後端服務，部署完成後可整合 Claude API。\n\n目前請手動將排盤結果複製給 AI 助理進行分析。');
+};
+</script>
+</body>
+</html>
