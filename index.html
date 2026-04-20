@@ -248,6 +248,8 @@ input[type=checkbox]{
 /* ── Canvas ── */
 #cvs{
   display:block;
+  width:100% !important;
+  max-width:100%;
   border:1px solid var(--border);
   border-radius:3px;
   background:#fff;
@@ -542,7 +544,7 @@ function calc(){
   return {gan:gan,mz:mz,ju:ju,jn:jn,zw:zw,yng:yng,fwd:fwd,daxi:daxi,curAge:curAge,gender:gender,myInfo:myInfo,isYin:isYin};
 }
 
-document.getElementById('drawBtn').onclick=function(){
+function doDraw(){
   var d=calc(),daxi=d.daxi;
   // 資訊卡
   var cards=document.getElementById('rcards');cards.innerHTML='';
@@ -561,8 +563,10 @@ document.getElementById('drawBtn').onclick=function(){
 
   var minA=Math.max(0,daxi[0].sa-1),maxA=daxi[daxi.length-1].ea+2;
   var cvs=document.getElementById('cvs');
-  var W=cvs.parentElement.clientWidth-2||798;
-  cvs.width=W;cvs.height=400;
+  var cardEl=document.querySelector('.card');
+  var W=Math.max(320, (cardEl?cardEl.getBoundingClientRect().width:0)-64||0) || Math.min(window.innerWidth-48, 820);
+  cvs.style.width='100%';
+  cvs.width=Math.floor(W);cvs.height=400;
   var ctx=cvs.getContext('2d');
   var PAD={t:28,r:28,b:52,l:54};
   var cw=W-PAD.l-PAD.r,ch=400-PAD.t-PAD.b;
@@ -708,6 +712,10 @@ document.getElementById('drawBtn').onclick=function(){
 
   document.getElementById('out').style.display='block';
   document.getElementById('out').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+document.getElementById('drawBtn').onclick=function(){
+  setTimeout(doDraw, 50);
 };
 
 document.getElementById('aiBtn').onclick=function(){
