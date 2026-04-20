@@ -411,7 +411,7 @@ footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
 <div class="card">
   <div class="card-title"><span class="step-num">2</span>人生重要事件</div>
   <div class="info-box">
-    填入對您人生有重大影響的事件。「不可抗力」代表此事件由外力造成（天災、意外、他人決定等），勾選後將以灰色虛線標示，並另計算排除後的應然吻合率。
+    請填入您在某個年齡時，發生了對人生有重大影響的事件，並標注該事件對您情緒的影響程度。正分（+1 至 +10）代表正向情緒，如喜悅、成就、愉快；負分（-1 至 -10）代表負向情緒，如悲傷、憤怒、挫折。若該事件屬於「不可抗力」（天災、意外、他人決定等外力造成），請勾選，系統將另行計算排除後的應然曲線。
   </div>
   <div id="evc"></div>
   <button class="btn-add" id="addEvBtn">＋ 新增事件</button>
@@ -430,7 +430,7 @@ footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
   <div class="card">
     <div class="card-title"><span class="step-num">✦</span>排盤結果</div>
     <div id="rcards" class="result-chips"></div>
-    <div id="modeTag"></div>
+    <div id="modeTag" style="display:none;"></div>
 
     <!-- 圖例 -->
     <div class="legend">
@@ -446,19 +446,9 @@ footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
     <div class="match-section" id="matchDiv"></div>
   </div>
 
-  <!-- 大限明細 -->
-  <div class="card">
-    <div class="card-title"><span class="step-num">✦</span>大限評分明細</div>
-    <div style="overflow-x:auto;">
-      <table class="daxi-table" id="dxTable">
-        <thead>
-          <tr>
-            <th>大限區間</th><th>宮位</th><th>宮名</th><th>主星</th><th>中點</th><th>原始分</th><th>換算分</th>
-          </tr>
-        </thead>
-        <tbody id="dxBody"></tbody>
-      </table>
-    </div>
+  <!-- 大限明細（隱藏） -->
+  <div style="display:none;">
+    <table id="dxTable"><thead><tr><th></th></tr></thead><tbody id="dxBody"></tbody></table>
   </div>
 
 </div><!-- /out -->
@@ -467,7 +457,7 @@ footer strong{color:var(--gold);font-family:'Noto Serif TC',serif;}
 
 <footer>
   <div class="container">
-    <strong>紫微人生曲線圖</strong> &nbsp;｜&nbsp; 發明人：[您的名字] &nbsp;｜&nbsp; © 2026 版權所有<br>
+    <strong>紫微人生曲線圖</strong> &nbsp;｜&nbsp; © 2026 版權所有<br>
     <span style="margin-top:6px;display:block;">本系統所有資料僅供研究用途，個人資料依法保護</span>
   </div>
 </footer>
